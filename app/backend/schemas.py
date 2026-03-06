@@ -175,7 +175,6 @@ class ApprovalDataIn(BaseModel):
     workflow_data_id: int
     status: str = "PENDING"
     approver_name: Optional[str] = None
-    approver_id: Optional[int] = None
     time: Optional[datetime] = None
     role_name: Optional[str] = None
     level: Optional[int] = None
