@@ -10,16 +10,52 @@ interface Permit {
   name: string;
   status: string;
   created_time: string;
-  permit_type_id?: number;
-  location_id?: number;
-  applicant_id?: number;
-  permit_type?: { name: string };
-  workflow_data?: { id: number; start_time?: string; end_time?: string };
-  document?: { id: number; name: string; path: string };
+  updated_time?: string;
+  permit_type_id: number;
+  workflow_data_id?: number;
+  location_id: number;
+  applicant_id: number;
+  document_id?: number;
+  created_by?: number;
+  updated_by?: number;
+
+  permit_type?: {
+    id: number;
+    company_id?: number;
+    name: string;
+  };
+  workflow_data?: {
+    id: number;
+    company_id?: number;
+    workflow_id?: number;
+    name?: string;
+    start_time?: string;
+    end_time?: string;
+  };
+  document?: {
+    id: number;
+    company_id?: number;
+    name: string;
+    path: string;
+    time?: string;
+  };
+  location?: {
+    id: number;
+    company_id?: number;
+    name: string;
+  };
+  applicant?: {
+    id: number;
+    company_id?: number;
+    name: string;
+    email?: string;
+    user_type?: number;
+  };
+
   workers?: any[];
   safety_equipment?: any[];
-  location?: { name: string };
-  applicant?: { name: string };
+  approvals?: any[];
+  approval_data?: any[];
   [key: string]: any;
 }
 

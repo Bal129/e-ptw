@@ -1,18 +1,16 @@
 import { useEffect, useState, useCallback } from 'react';
 import { 
-  fetchAllApplications, 
   fetchPermitTypes, 
   fetchLocations, 
   fetchUsers, 
-  fetchCompanies
+  fetchSafetyEquipment
 } from '../../../shared/services/api';
 
-export function usePermits() {
-  const [permits, setPermits] = useState<any[]>([]);
+export function useLookups() {
   const [permitTypes, setPermitTypes] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
-  const [applicants, setApplicants] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
+  const [safetyEquipment, setSafetyEquipment] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -26,29 +24,24 @@ export function usePermits() {
 
     (async () => {
       try {
-        const [permitsData, typesData, locsData, usersData, companiesData] = await Promise.all([
-          fetchAllApplications(),
+        const [typesData, locsData, usersData, safetyData] = await Promise.all([
           fetchPermitTypes(),
           fetchLocations(),
           fetchUsers(),
-          fetchCompanies()
+          fetchSafetyEquipment()
         ]);
 
         if (!mounted) return;
 
-        setPermits(permitsData);
-        console.log('All fetched permits:', permitsData);
         setPermitTypes(typesData);
         setLocations(locsData);
-        setApplicants(Array.isArray(usersData) ? usersData : (usersData.results || []));
-        setCompanies(companiesData);
+        setSafetyEquipment(safetyData);
+        setUsers(Array.isArray(usersData) ? usersData : (usersData.results || []));
       } catch (err: any) {
         if (!mounted) return;
-        setError(err.message || 'Failed to load permits data');
+        setError(err.message || 'Failed to load lookup data');
       } finally {
-        if (mounted) {
-          setLoading(false)
-        };
+        if (mounted) setLoading(false);
       }
     })();
 
@@ -56,7 +49,7 @@ export function usePermits() {
   }, [refreshKey]);
 
   return { 
-    permits, permitTypes, locations, applicants, companies,
+    permitTypes, locations, users, safetyEquipment,
     loading, error, refetch 
   };
 }
