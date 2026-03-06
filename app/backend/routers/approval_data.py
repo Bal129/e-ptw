@@ -45,7 +45,6 @@ def filter_approval_data(
     query = db.query(models.ApprovalData)
     if workflow_data_id is not None:
         query = query.filter(models.ApprovalData.workflow_data_id == workflow_data_id)
-        query = query.filter(models.ApprovalData.workflow_data_id == workflow_data_id) 
     if approval_id is not None:
         query = query.filter(models.ApprovalData.approval_id == approval_id)
     if status is not None:
