@@ -534,8 +534,8 @@ export default function PermitDetails() {
           <View className="mt-6">
             <Pressable
               onPress={handleSecurityConfirm}
-              disabled={!canConfirmSecurity || loading}
-              className={`py-3 rounded-xl items-center ${!canConfirmSecurity || loading ? 'bg-gray-400' : 'bg-primary'}`}
+              disabled={!canConfirmSecurity || loading || !isWithinWorkWindow}
+              className={`py-3 rounded-xl items-center ${!canConfirmSecurity || loading || !isWithinWorkWindow ? 'bg-gray-400' : 'bg-primary'}`}
             >
               <Text className="text-white font-medium">Confirm Entry</Text>
             </Pressable>
