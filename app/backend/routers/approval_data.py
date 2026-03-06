@@ -157,6 +157,7 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
         if application and application.status != "REJECTED":
             application.status = "REJECTED"
             application.updated_time = datetime.utcnow()
+            application.updated_by = approver_id
             db.commit()
             print(f"Application {application.id} rejected due to an approver rejection!")
 
@@ -205,6 +206,7 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
             if application and application.status != "APPROVED":
                 application.status = "APPROVED"
                 application.updated_time = datetime.utcnow()
+                application.updated_by = approver_id
                 db.commit()
 
                 # Notify Applicant of Final Approval
@@ -230,6 +232,7 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
         if obj.level == settings.SECURITY_ENTER_LEVEL and application:
             application.status = "ACTIVE"
             application.updated_time = datetime.utcnow()
+            application.updated_by = approver_id
             db.commit()
 
         # Level 98 -> Supervisor Confirm Job Done -> Custom logic for completion flow
@@ -252,6 +255,7 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
         if obj.level == settings.SECURITY_EXIT_LEVEL and application:
             application.status = "COMPLETED"
             application.updated_time = datetime.utcnow()
+            application.updated_by = approver_id
             db.commit()
 
     return data
