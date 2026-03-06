@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { ActivityIndicator } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import LoadingScreen from "@/components/LoadingScreen";
 import { usePermitDetails } from "@/hooks/usePermitDetails";
@@ -48,6 +49,9 @@ export default function PermitDetails() {
 
   const [extension, setExtension] = useState(false);
   const [extensionReason, setExtensionReason] = useState<string | null>(null);
+
+  // To show "Loading" after user press an action button
+  const [loadingAction, setLoadingAction] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -144,10 +148,17 @@ export default function PermitDetails() {
 
   async function handleApprovalAction(action: "APPROVED" | "REJECTED", remarksText?: string) {
     if (!myApproval) return crossPlatformAlert("Error", "No pending approval found for you.");
-    const myApprovalData = approvalData.find(ad => ad.approval_id === myApproval.id && ad.workflow_data_id === permit.workflowDataId);
+    
+    const myApprovalData = approvalData.find(
+      ad => ad.approval_id === myApproval.id && 
+      ad.workflow_data_id === permit.workflowDataId
+    );
+    
     if (!myApprovalData) return crossPlatformAlert("Error", "ApprovalData record not found.");
 
     try {
+      setLoadingAction(true);
+
       await updatePermitApproval(myApprovalData.id, action, remarksText);
       crossPlatformAlert("Success", `Permit ${action.toLowerCase()} successfully!`);
       setRemarksModalVisible(false);
@@ -155,11 +166,14 @@ export default function PermitDetails() {
     } catch (err: any) {
       console.error("Approval update failed:", err);
       crossPlatformAlert("Error", err.message || "Failed to update status");
+    } finally {
+      setLoadingAction(false);
     }
   }
 
   async function handleSecurityConfirm() {
     try {
+      setLoadingAction(true);
       // This function handles creating the closing workflow and activating the permit
       await confirmEntryAndCreateClosingWorkflow();
 
@@ -167,6 +181,8 @@ export default function PermitDetails() {
       refetch();
     } catch (err: any) {
       crossPlatformAlert("Error", err.message || "Failed to progress permit.");
+    } finally {
+      setLoadingAction(false);
     }
   }
 
@@ -176,20 +192,31 @@ export default function PermitDetails() {
       return crossPlatformAlert("Invalid Date", "New end time must be later than the current one.");
     }
     try {
+      setLoadingAction(true);
+
       await api.extendWorkEndTime(permit.workflowDataId, date.toISOString());
       crossPlatformAlert("Success", "Work end time has been extended.");
       refetch();
     } catch (error: any) {
       console.error("Failed to extend permit:", error.message || error);
+    } finally {
+      setLoadingAction(false);
     }
   }
 
   async function handleJobDoneConfirm() {
     if (!myApproval) return crossPlatformAlert("Error", "Job Done approval not found for you.");
-    const jobDoneApprovalData = approvalData.find(ad => ad.approval_id === myApproval.id && ad.workflow_data_id === permit.workflowDataId);
+    
+    const jobDoneApprovalData = approvalData.find(
+      ad => ad.approval_id === myApproval.id && 
+      ad.workflow_data_id === permit.workflowDataId
+    );
+    
     if (!jobDoneApprovalData) return crossPlatformAlert("Error", "ApprovalData for Job Done not found.");
 
     try {
+      setLoadingAction(true);
+
       // First, update the approval data record to mark it as done
       await updatePermitApproval(jobDoneApprovalData.id, PermitStatus.APPROVED);
       // Then, call the new endpoint to change the permit status to EXIT_PENDING
@@ -197,17 +224,25 @@ export default function PermitDetails() {
       // refetch();
     } catch (err: any) {
       crossPlatformAlert("Error", err.message || "Failed to confirm job done.");
+    } finally {
+      setLoadingAction(false);
     }
   }
 
   async function handleExitConfirm() {
     try {
+      setLoadingAction(true);
+
       await confirmPermitExit();
       crossPlatformAlert("Success", "Permit completed successfully!");
     } catch (err: any) {
       crossPlatformAlert("Error", err.message || "Failed to complete permit.");
+    } finally {
+      setLoadingAction(false);
     }
   }
+
+  // Confirmation modals
 
   function confirmApproveReject(action: "APPROVED" | "REJECTED") {
     if (action === "REJECTED") {
@@ -265,6 +300,27 @@ export default function PermitDetails() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.primary]} />
         }
       >
+        {loadingAction && (
+          <View
+            style={{
+              position: "absolute",     // absolutely position
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.3)", // semi-transparent overlay
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 9999,             // very high zIndex
+            }}
+          >
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={{ color: "#fff", marginTop: 8, fontWeight: "bold" }}>
+              Processing...
+            </Text>
+          </View>
+        )}
+
         {/* Permit Summary */}
         <View className="bg-white rounded-xl p-4 mb-4">
           <Text className="text-xl font-bold text-primary mb-3">Details</Text>

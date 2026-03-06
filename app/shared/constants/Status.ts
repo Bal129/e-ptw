@@ -12,7 +12,7 @@ export const PermitStatus = {
   REJECTED: "REJECTED",
   ACTIVE: "ACTIVE",
   COMPLETED: "COMPLETED",
-  EXIT_PENDING: "EXIT-PENDING",
+  EXIT_PENDING: "EXIT_PENDING",
 } as const;
 
 // Type-safe string literal type

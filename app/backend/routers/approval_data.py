@@ -132,6 +132,7 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
     new_status = data.get("status")
     new_remarks = data.get("remarks")
     approver_name = data.get("approver_name", "System")
+    approver_id = data.get("approver_id")
 
     # Update the ApprovalData object itself
     if new_status in {"APPROVED", "REJECTED"} and obj.status != new_status:
@@ -235,6 +236,7 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
         if obj.level == settings.CLOSING_FLOW_LEVEL and application:
             application.status = "EXIT_PENDING"
             application.updated_time = datetime.utcnow()
+            application.updated_by = approver_id
             db.commit()
 
             # Promote level 99 -> Security Confirm Exit

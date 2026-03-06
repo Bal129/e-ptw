@@ -208,21 +208,35 @@ def security_confirm_entry_action(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
 
-    if app.status == "APPROVED":
-        app.status = "ACTIVE"
-        app.updated_by = SECURITY_USER_ID
-        message = "Permit activated successfully (entry confirmed)."
-    else:
+    if app.status != "APPROVED":
         raise HTTPException(status_code=400, detail=f"Cannot confirm entry for permit with status: {app.status}")
 
+    # Fetch security user dynamically
+    security_user = (
+        db.query(models.User)
+        .join(models.UserGroup, models.User.id == models.UserGroup.user_id)
+        .join(models.Group, models.UserGroup.group_id == models.Group.id)
+        .filter(models.Group.name.ilike("Area Owner"))
+        .first()  # pick the first user in the group
+    )
+
+    if not security_user:
+        raise HTTPException(status_code=404, detail="No security user found in Area Owner group")
+
+    # Update application status
+    app.status = "ACTIVE"
+    app.updated_by = security_user.id
+    app.updated_time = datetime.utcnow()
     db.commit()
     db.refresh(app)
-    return {"message": message, "status": app.status}
+
+    return {"message": "Permit activated successfully (entry confirmed).", "status": app.status}
 
 @router.post("/{app_id}/job-done")
 def job_done_action(
     app_id: int,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """
     Supervisor confirms job is done.
@@ -235,7 +249,7 @@ def job_done_action(
 
     if app.status == "ACTIVE":
         app.status = "EXIT_PENDING"
-        app.updated_by = SECURITY_USER_ID
+        app.updated_by = current_user.id
         message = "Job done confirmed. Permit is now pending exit confirmation."
     else:
         raise HTTPException(status_code=400, detail=f"Cannot confirm job done for permit with status: {app.status}")
@@ -257,16 +271,32 @@ def security_confirm_exit_action(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found.")
 
-    if app.status == "EXIT_PENDING":
-        app.status = "COMPLETED"
-        app.updated_by = SECURITY_USER_ID
-        message = "Permit completed successfully (exit confirmed)."
-    else:
-        raise HTTPException(status_code=400, detail=f"Cannot confirm exit for permit with status: {app.status}. Expected EXIT_PENDING.")
+    if app.status != "EXIT_PENDING":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot confirm exit for permit with status: {app.status}. Expected EXIT_PENDING."
+        )
 
+    # Fetch security user dynamically
+    security_user = (
+        db.query(models.User)
+        .join(models.UserGroup, models.User.id == models.UserGroup.user_id)
+        .join(models.Group, models.UserGroup.group_id == models.Group.id)
+        .filter(models.Group.name.ilike("Area Owner"))
+        .first()  # pick the first user in the group
+    )
+
+    if not security_user:
+        raise HTTPException(status_code=404, detail="No security user found in Area Owner group")
+
+    # Update application status
+    app.status = "COMPLETED"
+    app.updated_by = security_user.id
+    app.updated_time = datetime.utcnow()
     db.commit()
     db.refresh(app)
-    return {"message": message, "status": app.status}
+
+    return {"message": "Permit completed successfully (exit confirmed).", "status": app.status}
 
 @router.get("/{application_id}/check-extension-eligibility", response_model=schemas.PermitExtensionEligibility)
 def check_permit_extension_eligibility(application_id: int, db: Session = Depends(get_db)):
