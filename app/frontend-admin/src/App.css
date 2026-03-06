@@ -384,13 +384,18 @@ body {
 }
 
 .table-search-bar {
-  padding: 6px 8px;
+  height: 38px;
+  padding: 0 8px;
   border: 1px solid #d1d5db;
   background-color: white;
   color: var(--color-primary);
   border-radius: 4px;
-  max-width: 100%;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  font-size: 0.85em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
 }
 
 .refresh-btn {
@@ -529,6 +534,7 @@ body {
   border-radius: 4px;
   padding: 0 8px;
   background-color: white;
+  height: 38px; /* Match ReactSelect default height */
 }
 
 .date-range-picker label {

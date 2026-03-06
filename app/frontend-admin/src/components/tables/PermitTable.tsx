@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import ReactSelect from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { /* faPencilAlt ,*/ faTrash, faSync, faEye } from '@fortawesome/free-solid-svg-icons';
 import { downloadDocumentById } from '../../../../shared/services/api';
@@ -263,48 +264,99 @@ const PermitTable: React.FC<Props> = ({
       <div className="table-header">
         <h3 className="table-header-title">Permits</h3>
         <div className="users-toolbar">
-          <select 
-            className="table-search-bar" 
-            style={{ width: 'auto', minWidth: 120 }}
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="DRAFT">DRAFT</option>
-            <option value="PENDING">PENDING</option>
-            <option value="APPROVED">APPROVED</option>
-            <option value="REJECTED">REJECTED</option>
-            <option value="COMPLETED">COMPLETED</option>
-          </select>
+          {/* Filters and search bar */}
+        
+          <div style={{ minWidth: 150 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Status' },
+                { value: 'DRAFT', label: 'DRAFT' },
+                { value: 'PENDING', label: 'PENDING' },
+                { value: 'APPROVED', label: 'APPROVED' },
+                { value: 'REJECTED', label: 'REJECTED' },
+                { value: 'COMPLETED', label: 'COMPLETED' },
+              ]}
+              value={{ value: selectedStatus, label: selectedStatus || 'All Status' }}
+              onChange={(option) => setSelectedStatus(option?.value || '')}
+              isClearable
+              placeholder="Status"
+            />
+          </div>
 
-          <select
-            className="table-search-bar"
-            style={{ width: 'auto', minWidth: 120 }}
-            value={selectedPermitTypeId === null ? '' : selectedPermitTypeId}
-            onChange={(e) => setSelectedPermitTypeId(e.target.value ? Number(e.target.value) : null)}
-          >
-            <option value="">All Types</option>
-            {permitTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name}</option>)}
-          </select>
+          {/* Permit Type */}
+          <div style={{ minWidth: 150 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Types' },
+                ...permitTypes.map(pt => ({ value: pt.id, label: pt.name })),
+              ]}
+              value={
+                selectedPermitTypeId
+                  ? { value: selectedPermitTypeId, label: permitTypes.find(pt => pt.id === selectedPermitTypeId)?.name }
+                  : { value: '', label: 'All Types' }
+              }
+              onChange={(option) =>
+                setSelectedPermitTypeId(option?.value ? Number(option.value) : null)
+              }
+              isClearable
+              placeholder="Type"
+            />
+          </div>
 
-          <select
-            className="table-search-bar"
-            style={{ width: 'auto', minWidth: 120 }}
-            value={selectedLocationId === null ? '' : selectedLocationId}
-            onChange={(e) => setSelectedLocationId(e.target.value ? Number(e.target.value) : null)}
-          >
-            <option value="">All Locations</option>
-            {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
-          </select>
+          {/* Location */}
+          <div style={{ minWidth: 150 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Locations' },
+                ...locations.map(loc => ({ value: loc.id, label: loc.name })),
+              ]}
+              value={
+                selectedLocationId
+                  ? { value: selectedLocationId, label: locations.find(l => l.id === selectedLocationId)?.name }
+                  : { value: '', label: 'All Locations' }
+              }
+              onChange={(option) =>
+                setSelectedLocationId(option?.value ? Number(option.value) : null)
+              }
+              isClearable
+              placeholder="Location"
+            />
+          </div>
 
+          {/* Company */}
+          <div style={{ minWidth: 180 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Companies' },
+                ...allCompanies.map(c => ({ value: c.id, label: c.name })),
+              ]}
+              value={
+                selectedCompanyId
+                  ? { value: selectedCompanyId, label: allCompanies.find(c => c.id === selectedCompanyId)?.name }
+                  : { value: '', label: 'All Companies' }
+              }
+              onChange={(option) =>
+                setSelectedCompanyId(option?.value ? Number(option.value) : null)
+              }
+              isClearable
+              placeholder="Company"
+            />
+          </div>
+
+          {/* Start Date */}
           <div className="date-range-picker">
-            <label>Period:</label>
+            <label>Start Date</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="date-range-input"
             />
+          </div>
+
+          {/* End Date */}
+          <div className="date-range-picker">
+            <label>End Date</label>
             <input
               type="date"
               value={endDate}
@@ -323,32 +375,6 @@ const PermitTable: React.FC<Props> = ({
           <button className="icon-btn refresh" onClick={onRefresh} disabled={loading} title="Refresh">
             <FontAwesomeIcon icon={faSync} spin={loading} />
           </button>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        <div className="table-header" style={{ marginBottom: 8 }}>
-          <strong className="table-header-title">Filter by Company (Applicant)</strong>
-          <input
-            placeholder="Search companies..."
-            value={companySearchQuery}
-            onChange={(e) => setCompanySearchQuery(e.target.value)}
-            className="table-search-bar"
-            style={{ width: 200 }}
-          />
-        </div>
-        <div className="companies-list">
-          <div className="permit-status-item">
-            <span>All Companies</span>
-            <button className="manage-btn view" onClick={() => setSelectedCompanyId(null)}>Select</button>
-          </div>
-          {filteredCompanies.map(c => (
-            <div key={c.id} className="permit-status-item">
-              <span>{c.name}</span>
-              <button className="manage-btn view" onClick={() => setSelectedCompanyId(c.id)}>Select</button>
-            </div>
-          ))}
-          {filteredCompanies.length === 0 && <div className="permit-status-item" style={{ justifyContent: 'center' }}>No companies found.</div>}
         </div>
       </div>
 

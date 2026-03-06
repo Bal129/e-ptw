@@ -716,7 +716,7 @@ export async function fetchFilteredApplications(params: FilterParams = {}) {
   }
 }
 
-export const fetchAllApplications = () => fetchPaginatedData("api/applications/");
+export const fetchAllApplications = () => fetchPaginatedData("api/applications/filter");
 
 export async function deleteApplication(id: number) {
   if (!id) throw new Error("Permit ID is required");
@@ -1066,53 +1066,55 @@ export async function fetchReportById(id: number) {
 }
 
 // -------------------- Utility: Paginated Fetch --------------------
-export async function fetchPaginatedData<T = any>(endpoint: string): Promise<T[]> {
-  const results: T[] = [];
-  let base = API_BASE_URL || await getApiBaseUrlWithOverride();
-  // Start with the raw endpoint. The backend will provide the next URL if it's paginated.
-  let nextUrl: string | null = base + endpoint;
-  // Get token for auth
+export async function fetchPaginatedData(endpoint: string) {
+  const results: any[] = [];
+  let skip = 0;
+  const limit = 100; // chunk size matches backend default
+  let finished = false;
+
+  const base = API_BASE_URL || await getApiBaseUrlWithOverride();
   const token = await getToken();
   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
-  while (nextUrl) {
-    try {
-      const res = await fetch(nextUrl, { headers });
-      if (!res.ok) break;
-      const data: any = await res.json();
-      console.log(data);
-      if (Array.isArray(data)) { results.push(...data); break; }
-      if (data && Array.isArray(data.results)) { results.push(...data.results); nextUrl = data.next ? (data.next.startsWith("http") ? data.next : `${base}${data.next}`) : null; }
-      else break;
-    } catch (err) {
-      console.error("Pagination fetch failed:", nextUrl, err);
-      break;
+  while (!finished) {
+    const res = await fetch(`${base}${endpoint}?skip=${skip}&limit=${limit}`, { headers });
+    if (!res.ok) break;
+
+    const data: any[] = await res.json();
+    results.push(...data);
+
+    if (data.length < limit) {
+      finished = true; // no more chunks
+    } else {
+      skip += limit; // fetch next chunk
     }
   }
+
   return results;
 }
 
 // export async function fetchPaginatedData<T = any>(endpoint: string): Promise<T[]> {
 //   const results: T[] = [];
-//   let offset = 0;
-//   const limit = 100;
-
-//   const base = API_BASE_URL || await getApiBaseUrlWithOverride();
+//   let base = API_BASE_URL || await getApiBaseUrlWithOverride();
+//   // Start with the raw endpoint. The backend will provide the next URL if it's paginated.
+//   let nextUrl: string | null = base + endpoint;
+//   // Get token for auth
 //   const token = await getToken();
 //   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
-//   while (true) {
-//     const res = await fetch(`${base}${endpoint}?limit=${limit}&offset=${offset}`, { headers });
-//     if (!res.ok) break;
-
-//     const data = await res.json();
-//     const items = data.results || data.items || [];
-
-//     results.push(...items);
-
-//     if (items.length < limit) break;
-//     offset += limit;
+//   while (nextUrl) {
+//     try {
+//       const res = await fetch(nextUrl, { headers });
+//       if (!res.ok) break;
+//       const data: any = await res.json();
+//       console.log(data);
+//       if (Array.isArray(data)) { results.push(...data); break; }
+//       if (data && Array.isArray(data.results)) { results.push(...data.results); nextUrl = data.next ? (data.next.startsWith("http") ? data.next : `${base}${data.next}`) : null; }
+//       else break;
+//     } catch (err) {
+//       console.error("Pagination fetch failed:", nextUrl, err);
+//       break;
+//     }
 //   }
-
 //   return results;
 // }

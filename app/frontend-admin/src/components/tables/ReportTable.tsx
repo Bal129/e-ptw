@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import ReactSelect from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSync, faEye } from '@fortawesome/free-solid-svg-icons';
 import TablePagination from './TablePagination';
@@ -107,37 +108,73 @@ const ReportTable: React.FC<Props> = ({
       <div className="table-header">
         <h3 className="table-header-title">All Reports</h3>
         <div className="users-toolbar">
-          <select
-            className="table-search-bar"
-            style={{ width: 'auto', minWidth: 120 }}
-            value={selectedCondition}
-            onChange={(e) => setSelectedCondition(e.target.value)}
-          >
-            <option value="">All Conditions</option>
-            {CONDITION_ITEMS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
+          {/* Condition */}
+          <div style={{ minWidth: 160 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Conditions' },
+                ...CONDITION_ITEMS.map(c => ({ value: c.value, label: c.label }))
+              ]}
+              value={
+                selectedCondition
+                  ? CONDITION_ITEMS
+                      .map(c => ({ value: c.value, label: c.label }))
+                      .find(o => o.value === selectedCondition)
+                  : { value: '', label: 'All Conditions' }
+              }
+              onChange={(option) => setSelectedCondition(option?.value || '')}
+              isClearable
+              placeholder="Condition"
+            />
+          </div>
 
-          <select
-            className="table-search-bar"
-            style={{ width: 'auto', minWidth: 120 }}
-            value={selectedConcern}
-            onChange={(e) => setSelectedConcern(e.target.value)}
-          >
-            <option value="">All Concerns</option>
-            {CONCERN_ITEMS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
+          {/* Concern */}
+          <div style={{ minWidth: 160 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Concerns' },
+                ...CONCERN_ITEMS.map(c => ({ value: c.value, label: c.label }))
+              ]}
+              value={
+                selectedConcern
+                  ? CONCERN_ITEMS
+                      .map(c => ({ value: c.value, label: c.label }))
+                      .find(o => o.value === selectedConcern)
+                  : { value: '', label: 'All Concerns' }
+              }
+              onChange={(option) => setSelectedConcern(option?.value || '')}
+              isClearable
+              placeholder="Concern"
+            />
+          </div>
 
+          {/* Date Range */}
           <div className="date-range-picker">
             <label>Period:</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-range-input" />
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-range-input" min={startDate} />
+
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="date-range-input"
+            />
+
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="date-range-input"
+              min={startDate}
+            />
           </div>
+
           <input
             placeholder="Search reports..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="table-search-bar"
           />
+
           <button className="icon-btn refresh" onClick={onRefresh} disabled={loading} title="Refresh">
             <FontAwesomeIcon icon={faSync} spin={loading} />
           </button>

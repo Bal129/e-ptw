@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import ReactSelect from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrash, faSync, faUserTag } from '@fortawesome/free-solid-svg-icons';
 import type { EnrichedUser } from '../../hooks/useUsers';
@@ -73,44 +74,46 @@ const UserTable: React.FC<Props> = ({
           )}
         </h3>
         <div className="users-toolbar">
+          {/* Company filter */}
+          {enableCompanyFilter && allCompanies && (
+            <div className="users-toolbar">
+              <div style={{ minWidth: 220 }}>
+                <ReactSelect
+                  options={[
+                    { value: '', label: 'All Companies' },
+                    ...allCompanies.map(c => ({ value: c.id, label: c.name })),
+                  ]}
+                  value={
+                    selectedCompanyId
+                      ? {
+                          value: selectedCompanyId,
+                          label: allCompanies.find(c => c.id === selectedCompanyId)?.name
+                        }
+                      : { value: '', label: 'All Companies' }
+                  }
+                  onChange={(option) =>
+                    setSelectedCompanyId(option?.value ? Number(option.value) : null)
+                  }
+                  isClearable
+                  placeholder="Company"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Search Bar */}
           <input
             placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="table-search-bar"
           />
+
           <button className="icon-btn refresh" onClick={onRefresh} disabled={loading} title="Refresh">
             <FontAwesomeIcon icon={faSync} spin={loading} />
           </button>
         </div>
       </div>
-
-      {enableCompanyFilter && allCompanies && (
-        <div style={{ marginBottom: 12 }}>
-          <div className="companies-list">
-            <div className="permit-status-item">
-              <span>All Companies</span>
-              <button 
-                className="manage-btn view" 
-                onClick={() => setSelectedCompanyId(null)}
-              >
-                Select
-              </button>
-            </div>
-            {allCompanies.map(c => (
-              <div key={c.id} className="permit-status-item">
-                <span>{c.name}</span>
-                <button 
-                  className="manage-btn view"
-                  onClick={() => setSelectedCompanyId(c.id)}
-                >
-                  Select
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="card-border">
         <div className="card-scroll">

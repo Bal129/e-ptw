@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import ReactSelect from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faSync } from '@fortawesome/free-solid-svg-icons';
 import type { Feedback } from '../../hooks/useFeedbacks';
@@ -88,26 +89,36 @@ const FeedbackTable: React.FC<Props> = ({ feedbacks, loading, error, onRefresh, 
       <div className="table-header">
         <h3 className="table-header-title">Feedbacks List</h3>
         <div className="users-toolbar">
-          <select
-            className="table-search-bar"
-            style={{ width: 'auto', minWidth: 120 }}
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-          >
-            <option value="">All Types</option>
-            {FEEDBACK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <div style={{ minWidth: 160 }}>
+            <ReactSelect
+              options={[
+                { value: '', label: 'All Types' },
+                ...FEEDBACK_TYPES.map(t => ({ value: t, label: t }))
+              ]}
+              value={
+                selectedType
+                  ? { value: selectedType, label: selectedType }
+                  : { value: '', label: 'All Types' }
+              }
+              onChange={(option) => setSelectedType(option?.value || '')}
+              isClearable
+              placeholder="Type"
+            />
+          </div>
+
           <div className="date-range-picker">
             <label>Period:</label>
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-range-input" />
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-range-input" min={startDate} />
           </div>
+          
           <input
             placeholder="Search feedbacks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="table-search-bar"
           />
+
           <button className="icon-btn refresh" onClick={onRefresh} disabled={loading} title="Refresh">
             <FontAwesomeIcon icon={faSync} spin={loading} />
           </button>

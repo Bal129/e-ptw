@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import ReactSelect from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrash, faSync } from '@fortawesome/free-solid-svg-icons';
 import { API_BASE_URL } from '../../../../shared/services/api';
@@ -148,29 +149,27 @@ const WorkerTable: React.FC<Props> = ({
         </div>
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <div className="table-header" style={{ marginBottom: 8 }}>
-          <strong className="table-header-title">Filter by Company</strong>
-          <input
-            placeholder="Search companies..."
-            value={companySearchQuery}
-            onChange={(e) => setCompanySearchQuery(e.target.value)}
-            className="table-search-bar"
-            style={{ width: 200 }}
+      <div className="users-toolbar" style={{ marginBottom: 12 }}>
+        <div style={{ minWidth: 240 }}>
+          <ReactSelect
+            options={[
+              { value: '', label: 'All Companies' },
+              ...allCompanies.map(c => ({ value: c.id, label: c.name })),
+            ]}
+            value={
+              selectedCompanyId
+                ? {
+                    value: selectedCompanyId,
+                    label: allCompanies.find(c => c.id === selectedCompanyId)?.name
+                  }
+                : { value: '', label: 'All Companies' }
+            }
+            onChange={(option) =>
+              setSelectedCompanyId(option?.value ? Number(option.value) : null)
+            }
+            isClearable
+            placeholder="Filter by Company"
           />
-        </div>
-        <div className="companies-list">
-          <div className="permit-status-item">
-            <span>All Companies</span>
-            <button className="manage-btn view" onClick={() => setSelectedCompanyId(null)}>Select</button>
-          </div>
-          {filteredCompanies.map(c => (
-            <div key={c.id} className="permit-status-item">
-              <span>{c.name}</span>
-              <button className="manage-btn view" onClick={() => setSelectedCompanyId(c.id)}>Select</button>
-            </div>
-          ))}
-          {filteredCompanies.length === 0 && <div className="permit-status-item" style={{ justifyContent: 'center' }}>No companies found.</div>}
         </div>
       </div>
 
