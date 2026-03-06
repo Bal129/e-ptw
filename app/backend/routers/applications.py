@@ -194,7 +194,8 @@ def get_applications_for_approver(
 
     return query.offset(skip).limit(limit).all()
 
-
+# Old endpoint for security-confirm-entry
+# Now use approval_data update mutator for centralized setup
 @router.post("/{app_id}/security-confirm-entry")
 def security_confirm_entry_action(
     app_id: int,
@@ -232,6 +233,8 @@ def security_confirm_entry_action(
 
     return {"message": "Permit activated successfully (entry confirmed).", "status": app.status}
 
+# Old endpoint for job done
+# Now use approval_data update mutator for centralized setup
 @router.post("/{app_id}/job-done")
 def job_done_action(
     app_id: int,
@@ -258,6 +261,8 @@ def job_done_action(
     db.refresh(app)
     return {"message": message, "status": app.status}
 
+# Old endpoint for security-confirm-exit
+# Now use approval_data update mutator for centralized setup
 @router.post("/{app_id}/security-confirm-exit")
 def security_confirm_exit_action(
     app_id: int,
@@ -291,8 +296,6 @@ def security_confirm_exit_action(
 
     # Update application status
     app.status = "COMPLETED"
-    app.updated_by = security_user.id
-    app.updated_time = datetime.utcnow()
     db.commit()
     db.refresh(app)
 

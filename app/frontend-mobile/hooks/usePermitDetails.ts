@@ -10,7 +10,7 @@ const SECURITY_USER_ID = 14;
 
 export function usePermitDetails(id?: string) {
   const [permit, setPermit] = useState<any | null>(null);
-  const { companyId: userCompanyId, userName } = useUser();
+  const { companyId: userCompanyId, userId, userName } = useUser();
   const [approvals, setApprovals] = useState<any[]>([]);
   const [approvalData, setApprovalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,19 +221,12 @@ export function usePermitDetails(id?: string) {
   // This function orchestrates the full security confirmation process
   const confirmEntryAndCreateClosingWorkflow = async () => {
     if (!permit) throw new Error("Permit details are not loaded.");
-
-    // Activate the permit
-    await api.securityConfirmEntry(permit.id);
-
     // Create the closing workflow (e.g., "Job Done" approval)
     await createClosingWorkflow();
   };
 
   const confirmPermitExit = async () => {
     if (!permit) throw new Error("Permit details are not loaded.");
-
-    // 1. Call API to confirm exit
-    await api.securityConfirmExit(permit.id);
 
     // LEVEL SECURITY EXIT CONFIRM 99: SECURITY EXIT (automatically APPROVED) ----
     const securityExitLevel = approvalData.find(ad => ad.level === ApprovalLevels.SECURITY_EXIT_LEVEL);
@@ -292,6 +285,7 @@ export function usePermitDetails(id?: string) {
       time: new Date().toISOString(),
       // Add the approver's name for the backend to use in notifications
       approver_name: userName,
+      approver_id: userId,
     };
     if (remarks !== undefined) {
       payload.remarks = remarks;
