@@ -131,14 +131,8 @@ def approval_data_update_mutator(obj: models.ApprovalData, data: dict, db: Sessi
     """
     new_status = data.get("status")
     new_remarks = data.get("remarks")
-
-    # Get the approver name and id from approval table
-    approval = db.query(models.Approval).filter(
-        models.Approval.id == obj.approval_id
-    ).first()
-
-    approver_id = approval.user_id if approval else None
-    approver_name = approval.name if approval else data.get("approver_name", "System")
+    approver_id = obj.approval.user_id if obj.approval else None
+    approver_name = obj.approval.name if obj.approval else data.get("approver_name", "System")
 
     # Update the ApprovalData object itself
     if new_status in {"APPROVED", "REJECTED"} and obj.status != new_status:
